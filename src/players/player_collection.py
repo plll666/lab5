@@ -1,8 +1,11 @@
 from src.players.player import Player
 
 class PlayerCollection:
-    def __init__(self):
+    def __init__(self, players=None):
         self._players = []
+        if players:
+            for player in players:
+                self.add(player)
 
     def add(self, player: Player) -> None:
         if not isinstance(player, Player):
