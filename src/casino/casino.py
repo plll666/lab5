@@ -1,4 +1,5 @@
 import random
+
 from src.players.player import Player
 from src.players.player_collection import PlayerCollection
 from src.gooses.goose_collection import GooseCollection
@@ -64,38 +65,44 @@ class Casino:
             return print(f"[Event] {player.name} не может ставить (нет средств)")
 
         bet_value = random.randint(1, max(1, player.balance // 2))
+        bet = Chip(bet_value)
 
         old = player.balance
-        player.balance -= bet_value
+        player.balance = max(0, player.balance - bet_value)
         self.balances[player.name] = player.balance
 
-        print(f"[Bet] {player.name} ставит {bet_value}: {old} -> {player.balance}")
-        print(f"[Lose] {player.name} проиграл ставку {bet_value}")
+        print(f"[Bet] {player.name} ставит {bet}, баланс: {old} -> {player.balance}")
 
     def event_player_win(self):
         player = self.get_random_player()
         if player is None:
             return print("[Event] Нет игроков для выигрыша")
 
-        win_value = random.randint(5, 20)
+        chip = Chip(random.randint(5, 20))
         old = player.balance
-        player.balance += win_value
+
+        player.balance += chip.value
         self.balances[player.name] = player.balance
 
-        print(f"[Event] {player.name} выиграл {win_value}, {old} -> {player.balance}")
+        print(f"[Event] {player.name} выиграл {chip}, {old} -> {player.balance}")
 
     def event_wargoose_attack(self):
         war_gooses = [g for g in self.gooses if isinstance(g, WarGoose)]
         if not war_gooses:
             return print("[Event] Боевых гусей нет")
+
         war_g = random.choice(war_gooses)
         player = self.get_random_player()
         if player is None:
             return print("[Event] Нет игроков для атаки")
 
-        damage = war_g.attack(player)
+        damage = Chip(war_g.honk_volume + random.randint(1, 50))
+        old = player.balance
+
+        player.balance = max(0, player.balance - damage.value)
         self.balances[player.name] = player.balance
-        print(f"[Event] WarGoose {war_g.name} атаковал {player.name}: -{damage}, баланс {player.balance}")
+
+        print(f"[Event] WarGoose {war_g.name} атаковал {player.name}: -{damage}, {old} -> {player.balance}")
 
     def event_honkgoose_honk(self):
         honk_gooses = [g for g in self.gooses if isinstance(g, HonkGoose)]
@@ -117,7 +124,9 @@ class Casino:
             if player is None:
                 continue
             old = player.balance
+
             new_balance = max(0, player.balance + delta)
+
             player.balance = new_balance
             self.balances[player.name] = new_balance
             sign = "+" if delta >= 0 else ""
@@ -129,10 +138,13 @@ class Casino:
         if goose is None or player is None:
             return print("[Event] Нужен и гусь, и игрок")
 
-        steal = random.randint(1, max(1, min(player.balance, 10)))
+        steal_value = random.randint(1, max(1, min(player.balance, 10)))
+        steal = Chip(steal_value)
         old = player.balance
-        player.balance = max(0, player.balance - steal)
+
+        player.balance = max(0, player.balance - steal.value)
         self.balances[player.name] = player.balance
+
         print(f"[Event] {goose.name} украл {steal} у {player.name}: {old} -> {player.balance}")
 
     def event_combine_gooses(self):
@@ -154,17 +166,17 @@ class Casino:
         if player is None:
             return print("[Event] Нет игроков")
 
+        old = player.balance
+
         if random.random() < 0.2:
-            old = player.balance
-            player.balance = 0
-            self.balances[player.name] = 0
-            print(f"[Event] {player.name} впал в панику и потерял всё: {old} -> 0")
+            loss = Chip(old)
         else:
-            panic_loss = random.randint(1, max(1, player.balance // 4))
-            old = player.balance
-            player.balance = max(0, player.balance - panic_loss)
-            self.balances[player.name] = player.balance
-            print(f"[Event] {player.name} паниковал и потерял {panic_loss}: {old} -> {player.balance}")
+            loss = Chip(random.randint(1, max(1, old // 4)))
+
+        player.balance = max(0, player.balance - loss.value)
+        self.balances[player.name] = player.balance
+
+        print(f"[Event] {player.name} потерял {loss}: {old} -> {player.balance}")
 
     def step(self):
         event = random.choice(self.events)
@@ -185,4 +197,3 @@ class Casino:
         print("\n[Simulation] Финальные балансы:")
         for p in self.players:
             print(f" - {p.name}: {p.balance}")
-
