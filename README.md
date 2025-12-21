@@ -17,17 +17,35 @@
 ## Структура проекта
 
 src/  
-├── casino/  
-│ ├── casino.py  
-│ ├── casino_balance.py  
-│ └── chip.py  
-├── players/  
-│ ├── player.py  
-│ └── player_collection.py  
-├── gooses/  
-│ ├── Goose.py  
+│ ├── init.py  
+│ ├── main.py  
+│ ├── casino/  
+│ │ ├── init.py  
+│ │ ├── casino.py   
+│ │ ├── casino_balance.py  
+│ │ └── chip.py   
+│ ├── players/  
+│ │ ├── init.py  
+│ │ ├── player.py    
+│ │ └── player_collection.py   
+│ └── gooses/  
+│ ├── init.py  
+│ ├── Goose.py   
 │ └── goose_collection.py  
-└── main.py  
+├── tests/  
+│ ├── init.py  
+│ ├── test_casino_balance.py   
+│ ├── test_chip.py   
+│ ├── test_goose_collection.py  
+│ ├── test_goose_exceptions.py  
+│ ├── test_goose_magic.py  
+│ ├── test_player_collection.py  
+│ ├── test_player_exceptions.py  
+│ └── test_simulation_seed.py  
+├── README.md  
+├── .gitignore   
+├── .pre-commit-config.yaml   
+└── uv.lock   
 
 ---
 
@@ -79,7 +97,7 @@ casino.run_simulation(steps, seed=None)
 
 ## Запуск 
 
-```python src/main.py```
+```python -m src/main.py```
 
 ## Тестирование
 
