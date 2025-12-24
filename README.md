@@ -1,112 +1,48 @@
-# Лабораторная работа №4  
-## Казино и Гуси — симуляция с пользовательскими коллекциями
+# Лабораторная работа №5
+## Отладка кодовой базы проекта на Python
 
-Проект реализует симуляцию казино, в которой участвуют:
-- игроки,
-- гуси (обычные, боевые и кричащие),
-- фишки казино.
+### Ошибка 1 — Ошибка границы цикла (off-by-one)
+**Место:** `main.py`, метод `spawn_players`  
+**Симптом:** Создаётся на одного игрока меньше указанного количества.  
+**Воспроизведение:** `spawn players 5`: создаётся 4 игрока.  
+**Отладка:** Breakpoint на `for i in range(1, count):`. Видно, что `i` начинается с 1, а должно с 0.  
+**Причина:** Неправильные границы `range(1, count)` вместо `range(count)`.  
+**Исправление:** Заменить на `for i in range(count)`.  
+**Доказательства:** ![screenshot_range_values.png](photo_debuger/screenshot_range_values.png)
 
-В работе используются:
-- пользовательские коллекции (списковая и словарная),
-- наследование,
-- магические методы,
-- псевдослучайная модель с возможностью фиксировать seed.
+### Ошибка 2 — Неверное логическое условие
+**Место:** `casino.py`, метод `event_player_bet`  
+**Симптом:** Игрок с нулевым балансом может делать ставки.  
+**Воспроизведение:** `add player POP 0`, далее `step`.  
+**Отладка:** Breakpoint на `if player.balance > 0:`. При `balance=0` условие `False`, ставка выполняется.  
+**Причина:** Условие инвертировано — должно быть `<=`.  
+**Исправление:** Заменить на `if player.balance <= 0:`.  
+**Доказательства:** ![screenshot_if_condition.png](photo_debuger/screenshot_if_condition.png)
 
----
+### Ошибка 3 — Использование изменяемого значения по умолчанию  
+**Место**: `goose_collection.py`, метод `__init__`  
+**Симптом**: Коллекции разделяют данные: добавление в одну коллекцию влияет на другие.  
+**Воспроизведение**: Создание двух GooseCollection с общим списком, добавление разных гусей.  
+**Отладка**: Breakpoint на self._gooses = gooses. Проверка id(collection1._gooses) == id(collection2._gooses).  
+**Причина**: Использование [] как значения по умолчанию параметра.  
+**Исправление**: Заменить gooses=[] на gooses=None, создать новый список при None.    
+**Доказательства**:    ![screenshot_test_results.png](photo_debuger/screenshot_test_results.png)     
+![screenshot_code_error.png](photo_debuger/screenshot_code_error.png)    
 
-## Структура проекта
+### Ошибка 4 — Сравнение через is вместо ==
+**Место:** `player_collection.py`, метод `__contains__`  
+**Симптом:** Поиск игрока по имени не работает.  
+**Воспроизведение:** Проверка `"Jeah" in players` возвращает `False` при наличии игрока.  
+**Отладка:** Breakpoint на `p.name is item`. Видно разные `id()` у одинаковых строк.  
+**Причина:** `is` сравнивает идентичность объектов, а не равенство значений.  
+**Исправление:** Заменить на `p.name == item`.  
+**Доказательства:** ![error4_1.png](photo_debuger/screenshot_error4_1.png)  
 
-src/  
-│ ├── init.py  
-│ ├── main.py  
-│ ├── casino/  
-│ │ ├── init.py  
-│ │ ├── casino.py   
-│ │ ├── casino_balance.py  
-│ │ └── chip.py   
-│ ├── players/  
-│ │ ├── init.py  
-│ │ ├── player.py    
-│ │ └── player_collection.py   
-│ └── gooses/  
-│ ├── init.py  
-│ ├── Goose.py   
-│ └── goose_collection.py  
-├── tests/  
-│ ├── init.py  
-│ ├── test_casino_balance.py   
-│ ├── test_chip.py   
-│ ├── test_goose_collection.py  
-│ ├── test_goose_exceptions.py  
-│ ├── test_goose_magic.py  
-│ ├── test_player_collection.py  
-│ ├── test_player_exceptions.py  
-│ └── test_simulation_seed.py  
-├── README.md  
-├── .gitignore   
-├── .pre-commit-config.yaml   
-└── uv.lock   
-
----
-
-## Основные компоненты
-
-### Player  
-Игрок с именем и балансом.
-
-### Goose, WarGoose, HonkGoose  
-- Goose — базовый гусь  
-- WarGoose — атакует игроков  
-- HonkGoose — изменяет балансы игроков (реализует `__call__`)  
-- Поддерживается объединение гусей через `__add__`
-
-### Chip  
-Фишка казино.  
-Поддерживает `__add__` и `__radd__` (Chip + Chip, Chip + int).
-
-### PlayerCollection / GooseCollection  
-Пользовательские списковые коллекции:
-- поддерживают индексацию,
-- срезы,
-- итерацию,
-- удаление по объекту и по имени,
-- поиск.
-
-### CasinoBalance  
-Пользовательская словарная коллекция, логирующая изменения балансов.
-
----
-
-## Симуляция
-
-Метод:
-
-```
-casino.run_simulation(steps, seed=None)
-```
-На каждом шаге случайно выбирается одно событие:
-- ставка игрока
-- выигрыш
-- атака боевого гуся
-- крик HonkGoose
-- попытка кражи
-- объединение гусей
-- паника игрока
-
-При передаче `seed` симуляция становится воспроизводимой.
-
-## Запуск 
-
-```python -m src/main.py```
-
-## Тестирование
-
-Тесты проверяют:
-- коллекции
-- магические методы
-- поведение событий
-- работу seed
-
-## Запуск:
-
-```pytest -v```
+### Ошибка 5 — Перепутанные аргументы в формуле ущерба  
+**Место**: `Goose.py`, метод attack класса WarGoose  
+**Симптом**: Игроки теряют все деньги или получают деньги при атаке.  
+**Воспроизведение**: Запустить `bug5.py`  
+**Отладка**: Breakpoint на player.balance = max(0, damage - player.balance). Видно перепутанные аргументы.  
+**Причина**: Используется damage - player.balance вместо player.balance - damage.  
+**Исправление**: Заменить на player.balance = max(0, player.balance - damage).  
+**Доказательства**: ![screenshot_debug_values.png](photo_debuger/screenshot_debug_values.png)  
