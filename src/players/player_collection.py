@@ -50,7 +50,7 @@ class PlayerCollection:
         if isinstance(item, Player):
             return any(p is item for p in self._players)
         if isinstance(item, str):
-            return any(p.name == item for p in self._players)
+            return any(p.name is item for p in self._players)
         return False
 
     def find_by_name(self, name):

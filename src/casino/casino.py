@@ -61,7 +61,7 @@ class Casino:
         if player is None:
             return print("[Event] Нет игроков для ставки")
 
-        if player.balance <= 0:
+        if player.balance > 0:
             return print(f"[Event] {player.name} не может ставить (нет средств)")
 
         bet_value = random.randint(1, max(1, player.balance // 2))
@@ -156,8 +156,9 @@ class Casino:
         new_goose = g1 + g2
 
         self.gooses.add(new_goose)
-        self.gooses.remove(g1)
-        self.gooses.remove(g2)
+        for g in self.gooses:
+            if g is g1 or g is g2:
+                self.gooses.remove(g)
 
         print(f"[Event] Объединены гуси: {g1.name} + {g2.name} -> {new_goose.name}")
 

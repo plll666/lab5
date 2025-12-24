@@ -150,8 +150,9 @@ def handle_spawn(args):
         spawn_geese(count)
     else:
         raise ValueError("Использование: spawn players/geese <count>")
+
 def spawn_players(count: int):
-    for i in range(count):
+    for i in range(1, count):
         name = f"Player_{random.randint(1000, 9999)}"
         balance = random.randint(50, 500)
 

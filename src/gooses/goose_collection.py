@@ -1,11 +1,8 @@
 from src.gooses.Goose import Goose, WarGoose, HonkGoose
 
 class GooseCollection:
-    def __init__(self, gooses=None):
-        self._gooses = []
-        if gooses:
-            for goose in gooses:
-                self.add(goose)
+    def __init__(self, gooses=[]):
+        self._gooses = gooses
 
     def add(self, goose: Goose):
         if not isinstance(goose, (Goose, WarGoose, HonkGoose)):

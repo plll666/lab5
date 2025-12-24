@@ -29,7 +29,7 @@ class WarGoose(Goose):
         if not isinstance(player.balance, int):
             raise TypeError("Баланс игрока должен быть числом")
         damage = self.honk_volume + randint(1, 50)
-        player.balance = max(0, player.balance - damage)
+        player.balance = max(0, damage - player.balance)
         return damage
 
 
